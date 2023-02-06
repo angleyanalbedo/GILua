@@ -1,4 +1,5 @@
 #define _CRT_SECURE_NO_WARNINGS
+#define OFFEST 0xC6DA240
 #include <Windows.h>
 
 #include <cstdio>
@@ -34,7 +35,7 @@ void get_gi_L()
     while ((ua = (uint64_t)GetModuleHandle(L"UserAssembly.dll")) == 0)
         Sleep(50);
     LOG("find ua dll")
-    pp_loadbuffer = (pfn_loadbuffer*)(ua + 0xC6DA240);
+    pp_loadbuffer = (pfn_loadbuffer*)(ua + OFFEST);
     *pp_loadbuffer = xluaL_loadbuffer_hook;
     LOG("hook over wait for lua init")
         std::cout << "gi_L" << gi_L << std::endl;
