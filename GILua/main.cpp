@@ -11,6 +11,8 @@
 
 #include "lua/lua.hpp"
 
+#define LOG(str) std::cout<<str<<std::endl;
+
 lua_State* gi_L;
 HMODULE xlua;
 
@@ -31,10 +33,11 @@ void get_gi_L()
     uint64_t ua = 0;
     while ((ua = (uint64_t)GetModuleHandle(L"UserAssembly.dll")) == 0)
         Sleep(50);
-
+    LOG("find ua dll")
     pp_loadbuffer = (pfn_loadbuffer*)(ua + 0xC6DA240);
     *pp_loadbuffer = xluaL_loadbuffer_hook;
-
+    LOG("hook over wait for lua init")
+        std::cout << "gi_L" << gi_L << std::endl;
     while (!gi_L)
         Sleep(50);
 
@@ -44,6 +47,7 @@ void get_gi_L()
 std::optional<std::string> compile(lua_State* L, const char* script)
 {
     std::ostringstream compiled_script;
+    LOG("in complie function line 49")
 
     auto writer = [](lua_State* L, const void* p, size_t sz, void* ud) -> int
     {
@@ -73,7 +77,7 @@ std::optional<std::string> compile(lua_State* L, const char* script)
 }
 
 void exec(std::string compiled)
-{
+{   LOG("start exec")
     using pfn_pcall = int (*)(void* L, int nargs, int nresults, int errfunc);
     static auto xlua_pcall = (pfn_pcall)GetProcAddress(xlua, "lua_pcall");
     static auto xluaL_loadbuffer = (pfn_loadbuffer)GetProcAddress(xlua, "xluaL_loadbuffer");
