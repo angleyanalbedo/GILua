@@ -72,6 +72,17 @@ std::optional<std::filesystem::path> this_dir()
     return std::filesystem::path(path).remove_filename();
 }
 
+bool BypassDebug(const PROCESS_INFORMATION proc_info, const std::filesystem::path path){
+    if (!std::filesystem::exists(path)||!std::filesystem::is_regular_file(path)) {
+        printf("path error\n");
+        return false;
+    }
+    if (!InjectStandard(proc_info.hProcess, path.string().c_str())) {
+        printf("failed\n");
+        return false;
+    }
+    return true;
+}
 int main()
 {
     auto current_dir = this_dir();
@@ -110,6 +121,14 @@ int main()
     PROCESS_INFORMATION proc_info{};
     STARTUPINFOA startup_info{};
     CreateProcessA(exe_path.c_str(), NULL, NULL, NULL, FALSE, CREATE_SUSPENDED, NULL, NULL, &startup_info, &proc_info);
+#pragma region DebugBypass
+    if (!BypassDebug(proc_info,current_dir.value()/"DebuggerBypass.dll")) {
+        printf("Bypass Debug Failed\n");
+        return 0;
+    }
+#pragma endregion
+
+    Sleep(2000);
 
     InjectStandard(proc_info.hProcess, dll_path.string().c_str());
     ResumeThread(proc_info.hThread);
